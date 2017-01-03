@@ -20,6 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//! An implemenation of a CLOCK cache as first described in
+//! [A Paging Experiment with the Multics System] (http://multicians.org/paging-experiment.pdf).
+//!
+//! ## Example
+//!
+//! ```rust,no_run
+//! extern crate clock_cache;
+//!
+//! use clock_cache::ClockCache;
+//!
+//! fn main() {
+//!         let mut cache = ClockCache::new(2);
+//!         cache.put("apple", "red");
+//!         cache.put("banana", "yellow");
+//!
+//!         assert_eq!(*cache.get(&"apple").unwrap(), "red");
+//!         assert_eq!(*cache.get(&"banana").unwrap(), "yellow");
+//!         assert!(cache.get(&"pear").is_none());
+//!
+//!         cache.put("pear", "green");
+//!
+//!         assert_eq!(*cache.get(&"pear").unwrap(), "green");
+//!         assert_eq!(*cache.get(&"banana").unwrap(), "yellow");
+//!         assert!(cache.get(&"apple").is_none());
+//! }
+//! ```
+
+
 extern crate bit_vec;
 
 use std::collections::HashMap;
