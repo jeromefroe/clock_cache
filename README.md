@@ -9,7 +9,7 @@
 [Documentation](https://docs.rs/clock_cache/)
 
 An implemenation of a CLOCK cache as first described in
-[A Paging Experiment with the Multics System] (http://multicians.org/paging-experiment.pdf).
+[A Paging Experiment with the Multics System](http://multicians.org/paging-experiment.pdf).
 
 ## Example
 
