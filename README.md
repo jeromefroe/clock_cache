@@ -1,7 +1,7 @@
 # CLOCK Cache
 
 [![Build Status](https://travis-ci.org/jeromefroe/clock_cache.svg?branch=master)](https://travis-ci.org/jeromefroe/clock_cache)
-[![Coverage Status](https://coveralls.io/repos/github/jeromefroe/clock_cache/badge.svg?branch=master)](https://coveralls.io/github/jeromefroe/clock_cache?branch=master)
+[![codecov](https://codecov.io/gh/jeromefroe/clock_cache/branch/master/graph/badge.svg)](https://codecov.io/gh/jeromefroe/clock_cache)
 [![crates.io](https://img.shields.io/crates/v/clock_cache.svg)](https://crates.io/crates/clock_cache/)
 [![docs.rs](https://docs.rs/lru/badge.svg)](https://docs.rs/clock_cache/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/jeromefroe/clock_cache/master/LICENSE)
