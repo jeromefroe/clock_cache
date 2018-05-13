@@ -47,7 +47,6 @@
 //! }
 //! ```
 
-
 extern crate bit_vec;
 
 use std::collections::HashMap;
@@ -81,10 +80,7 @@ struct ClockEntry<K, V> {
 
 impl<K, V> ClockEntry<K, V> {
     fn new(key: K, val: V) -> Self {
-        ClockEntry {
-            key: key,
-            val: val,
-        }
+        ClockEntry { key, val }
     }
 }
 
@@ -111,7 +107,7 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
             map: HashMap::with_capacity(cap),
             entries: Vec::with_capacity(cap),
             bits: BitVec::from_fn(cap, |_| false),
-            cap: cap,
+            cap,
             idx: 0,
         }
     }
@@ -131,18 +127,16 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
     /// ```
     pub fn put(&mut self, k: K, v: V) {
         // check if the key is already in the cache
-        match self.map.get(&KeyRef { k: &k }) {
-            Some(idx) => {
-                self.entries.get_mut(*idx).map(|entry| entry.val = v);
-                return;
-            }
-            None => (),
-        };
+        if let Some(idx) = self.map.get(&KeyRef { k: &k }) {
+            let entry = &mut self.entries[*idx];
+            entry.val = v;
+            return;
+        }
 
         let entry = if self.entries.len() < self.cap {
             // if entries is not full yet, push a new entry onto the end
             self.entries.push(ClockEntry::new(k, v));
-            self.entries.get_mut(self.idx).unwrap()
+            &mut self.entries[self.idx]
         } else {
             // if entries is full, find and use the first entry with its usage bit set to false
             let mut usage_bit = self.bits.get(self.idx).unwrap();
@@ -155,7 +149,7 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
 
             self.bits.set(self.idx, true);
 
-            let entry = self.entries.get_mut(self.idx).unwrap();
+            let entry = &mut self.entries[self.idx];
 
             let old_key = KeyRef { k: &entry.key };
             self.map.remove(&old_key);
@@ -190,7 +184,7 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
     /// assert_eq!(cache.get(&3), Some(&"d"));
     /// ```
     pub fn get<'a>(&'a mut self, k: &K) -> Option<&'a V> {
-        let key = KeyRef { k: k };
+        let key = KeyRef { k };
         match self.map.get(&key) {
             None => None,
             Some(idx) => {
@@ -216,7 +210,7 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
     /// assert_eq!(cache.peek(&2), Some(&"b"));
     /// ```
     pub fn peek<'a>(&'a mut self, k: &K) -> Option<&'a V> {
-        let key = KeyRef { k: k };
+        let key = KeyRef { k };
         match self.map.get(&key) {
             None => None,
             Some(idx) => Some(self.entries.get(*idx).map(|entry| &entry.val).unwrap()),
@@ -241,7 +235,7 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
     /// assert!(cache.contains(&3));
     /// ```
     pub fn contains(&self, k: &K) -> bool {
-        let key = KeyRef { k: k };
+        let key = KeyRef { k };
         self.map.contains_key(&key)
     }
 
@@ -262,7 +256,7 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
     /// assert_eq!(cache.len(), 0);
     /// ```
     pub fn pop(&mut self, k: &K) -> bool {
-        let key = KeyRef { k: k };
+        let key = KeyRef { k };
         match self.map.remove(&key) {
             None => false,
             Some(_) => true,
@@ -291,6 +285,22 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
         self.map.len()
     }
 
+    /// Return true if the cache is empty.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use clock_cache::ClockCache;
+    /// let mut cache = ClockCache::new(2);
+    /// assert!(cache.is_empty());
+    ///
+    /// cache.put(1, "a");
+    /// assert!(!cache.is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+
     /// Return the maximum number of key-value pairs the cache can hold.
     ///
     /// # Example
@@ -307,8 +317,8 @@ impl<K: Hash + Eq, V> ClockCache<K, V> {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
     use super::ClockCache;
+    use std::fmt::Debug;
 
     fn assert_opt_eq<V: PartialEq + Debug>(opt: Option<&V>, v: V) {
         assert!(opt.is_some());
@@ -318,12 +328,14 @@ mod tests {
     #[test]
     fn test_put_and_get() {
         let mut cache = ClockCache::new(2);
+        assert!(cache.is_empty());
 
         cache.put("apple", "red");
         cache.put("banana", "yellow");
 
         assert_eq!(cache.cap(), 2);
         assert_eq!(cache.len(), 2);
+        assert!(!cache.is_empty());
         assert_opt_eq(cache.get(&"apple"), "red");
         assert_opt_eq(cache.get(&"banana"), "yellow");
     }
@@ -380,6 +392,6 @@ mod tests {
         assert!(cache.pop(&"banana"));
         assert!(!cache.pop(&"apple"));
         assert!(!cache.pop(&"apple"));
-        assert_eq!(cache.len(), 0);
+        assert!(cache.is_empty());
     }
 }
